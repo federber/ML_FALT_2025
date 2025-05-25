@@ -1,0 +1,12 @@
+torch>=1.13.0
+torchtext==0.6.0
+pandas
+spacy
+scikit-learn
+nltk
+tqdm
+matplotlib
+seaborn
+rouge-score
+wandb
+dill
