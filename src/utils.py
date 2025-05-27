@@ -4,47 +4,25 @@ import torch.nn as nn
 import pandas as pd
 import matplotlib.pyplot as plt
 
-class NoamOpt:
-    def __init__(self, model_size, factor=2, warmup=4000, optimizer=None):
-        self.optimizer = optimizer
-        self._step = 0
-        self.warmup = warmup
-        self.factor = factor
-        self.model_size = model_size
-        self._rate = 0
-        if self.optimizer is None:
-            self.optimizer = torch.optim.Adam([], lr=0)
 
-    def step(self):
-        self._step += 1
-        rate = self.rate()
-        for p in self.optimizer.param_groups:
-            p['lr'] = rate
-        self._rate = rate
-        self.optimizer.step()
-
-    def rate(self, step=None):
-        if step is None:
-            step = self._step
-        return self.factor * (
-            self.model_size ** (-0.5) *
-            min(step ** (-0.5), step * self.warmup ** (-1.5))
-        )
+def make_mask(source_inputs, target_inputs, pad_idx):
+    source_mask = (source_inputs != pad_idx).unsqueeze(-2)
+    target_mask = (target_inputs != pad_idx).unsqueeze(-2)
+    target_mask = target_mask & subsequent_mask(target_inputs.size(-1)).type_as(target_mask)
+    return source_mask, target_mask
 
 
-class LabelSmoothingLoss(nn.Module):
-    def __init__(self, smoothing=0.1, vocab_size=None, ignore_index=-100):
-        super().__init__()
-        self.smoothing = smoothing
-        self.vocab_size = vocab_size
-        self.ignore_index = ignore_index
+def convert_batch(batch, pad_idx=1):
+    source_inputs, _ = batch.source
+    target_inputs, _ = batch.target
 
-    def forward(self, pred, target):
-        pred = pred.log_softmax(dim=-1)
-        with torch.no_grad():
-            true_dist = torch.zeros_like(pred)
-            true_dist.fill_(self.smoothing / (self.vocab_size - 2))
-            mask = (target != self.ignore_index).unsqueeze(1)
-            true_dist.scatter_(1, target.data.unsqueeze(1), 1.0 - self.smoothing)
-            true_dist = true_dist * mask
-        return torch.mean(torch.sum(-true_dist * pred, dim=-1))
+    source_inputs = source_inputs.transpose(0, 1)
+    target_inputs = target_inputs.transpose(0, 1)
+
+    source_mask, target_mask = make_mask(source_inputs, target_inputs, pad_idx)
+    return source_inputs, target_inputs, source_mask, target_mask
+
+
+def subsequent_mask(size):
+    mask = torch.ones(size, size, device=DEVICE).triu_()
+    return mask.unsqueeze(0) == 0
