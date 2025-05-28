@@ -69,4 +69,15 @@ def generate_summary_beam(
     tokens = [tgt_field.vocab.itos[i] for i in best_seq]
 
     return clean_text(tokens[1:-1])
+def evaluate_model(model, word_field, val_iter):
+    model.eval()
+    pad_idx = word_field.vocab.stoi["<pad>"]
 
+    criterion = LabelSmoothingLoss(
+        smoothing=0.05,
+        vocab_size=len(word_field.vocab),
+        ignore_index=pad_idx
+    ).to(DEVICE)
+
+    val_metrics = do_epoch(model, criterion, val_iter, None, "Evaluation:", teacher_forcing_ratio=0.0)
+    return val_metrics
