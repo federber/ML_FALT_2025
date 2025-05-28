@@ -1,0 +1,4 @@
+При визуализации механизма attention рассматриваются три типа attention:
+mode = 0 -> enc_self_attn
+mode = 1 -> dec_self_attn
+mode = 2 -> dec_enc_attn
