@@ -12,33 +12,66 @@ class AttentionData():
         self.dec_enc_attn = model.decoder.enc_attn_probs
         self.tokens_inp = [word_field.init_token] + word_field.tokenize(inp_text.lower()) + [word_field.eos_token]
         self.tokens_out = [word_field.init_token] + word_field.tokenize(out_text.lower()) + [word_field.eos_token]
-    def visualize(self, layer, head, mode = 0):
-        #mode = 0 -> enc_self_attn
-        #mode = 1 -> dec_self_attn
-        #mode = 2 -> dec_enc_attn
+
+    def visualize(self, layer, head, mode=0, save_path=None):
         if mode == 0:
             arr = self.enc_self_attn
             x_tokens = self.tokens_inp
             y_tokens = self.tokens_inp
             title = "enc_self_attn"
-        if mode == 1:
+        elif mode == 1:
             arr = self.dec_self_attn
             x_tokens = self.tokens_out
             y_tokens = self.tokens_out
             title = "dec_self_attn"
-        if mode == 2:
+        elif mode == 2:
             arr = self.dec_enc_attn
             x_tokens = self.tokens_inp
             y_tokens = self.tokens_out
             title = "dec_enc_attn"
+        else:
+            raise ValueError("Invalid mode. Use 0, 1, or 2.")
 
-        arr = arr[layer].cpu().numpy()[0][head]
+        attn_tensor = arr[layer][0][0]
+
+        attn_map = attn_tensor[head].cpu().numpy()
+        if attn_map.ndim != 2:
+            raise ValueError(f"Expected 2D attention map, got shape: {attn_map.shape}")
+
+        # Plotting
         plt.figure(figsize=(10, 8))
-        sns.heatmap(arr, xticklabels=x_tokens, yticklabels=y_tokens, cmap='viridis')
+        sns.heatmap(attn_map, xticklabels=x_tokens, yticklabels=y_tokens, cmap='viridis')
         plt.title(f"Attention Weights for {title} (Layer {layer}, Head {head})")
         plt.xlabel("Input Tokens")
         plt.ylabel("Output Tokens")
-        plt.show()
+
+        if save_path:
+            plt.savefig(save_path)
+            plt.close()
+        else:
+            plt.show()
+
+
+def process_and_visualize_attention(custom_texts, model, word_field, generate_summary_beam, DEVICE, MAX_LAYERS, MAX_HEADS, output_dir='attention_maps'):
+    os.makedirs(output_dir, exist_ok=True)
+
+    for i, text in enumerate(custom_texts):
+        summary = generate_summary_beam(model, text, word_field, word_field, DEVICE)
+        print(f"=== [{i}] ===")
+        print("Text:", text)
+        print("Generated summary:", summary)
+        print()
+
+        ad = AttentionData(model, word_field, text, summary)
+        text_dir = os.path.join(output_dir, f"text_{i}")
+        os.makedirs(text_dir, exist_ok=True)
+
+        for mode in range(3):  # 0 = enc_self_attn, 1 = dec_self_attn, 2 = dec_enc_attn
+            for layer in range(MAX_LAYERS):
+                for head in range(MAX_HEADS):
+                    filename = f"text_{i}_mode_{mode}_head_{head}_layer_{layer}.png"
+                    save_path = os.path.join(text_dir, filename)
+                    ad.visualize(layer=layer, head=head, mode=mode, save_path=save_path)
 
 
 def analyze_vocabulary(vocab, data=None, max_words_to_print=20):
