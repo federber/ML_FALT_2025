@@ -1,0 +1,49 @@
+stages:
+  prepare_data:
+    cmd: python -m src.data.prepare
+    deps:
+      - src/data/prepare.py
+    outs:
+      - data/processed
+
+  train_simclr:
+    cmd: python -m src.scripts.train_simclr
+    deps:
+      - src/scripts/train_simclr.py
+      - data/processed
+    outs:
+      - models/simclr_best.pt
+
+  evaluate:
+    cmd: python -m src.scripts.evaluate
+    deps:
+      - models/simclr_best.pt
+    outs:
+      - results/metrics.json
+
+  train_protonet:
+    cmd: python -m src.scripts.train_protonet
+    deps:
+      - src/scripts/train_protonet.py
+      - models/simclr_best.pt  
+      - data/processed
+    outs:
+      - models/protonet_best.pt
+
+  evaluate_protonet:
+    cmd: python -m src.scripts.evaluate_protonet
+    deps:
+      - models/protonet_best.pt
+    outs:
+      - results/protonet_metrics.json
+
+  generate_report:
+    cmd: python -m src.scripts.generate_report
+    deps:
+      - results/metrics.json
+      - results/protonet_metrics.json
+    outs:
+      - results/report.pdf
+
+
+
