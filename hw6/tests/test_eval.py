@@ -7,7 +7,6 @@ from model import Model, GameProcessor
 
 @pytest.fixture
 def dummy_model_path(tmp_path):
-    # создаём временную модель
     model = Model()
     path = tmp_path / "dummy_model.pt"
     torch.save(model, path)

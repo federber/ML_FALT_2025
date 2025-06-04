@@ -85,7 +85,6 @@ class TrainingSession:
             self.best_score = metrics['score']
             torch.save(self.model, f"models/best_model_{epoch}.pth")
 
-        # Save training log
         self._record_metrics(metrics)
 
     def _record_metrics(self, metrics):
