@@ -1,0 +1,70 @@
+stages:
+  prepare:
+    cmd: python src/data_preparation.py
+    deps:
+      - src/data_preparation.py
+      - data/raw/celeba/identity_CelebA.txt
+      - data/raw/celeba/list_eval_partition.txt
+    outs:
+      - data/intermediate/celeba_id.csv
+      - data/intermediate/list_eval_partition.csv
+
+  build_triplets:
+    cmd: python src/triplet_builder.py
+    deps:
+      - src/triplet_builder.py
+      - data/intermediate/celeba_id.csv
+      - data/intermediate/list_eval_partition.csv
+    outs:
+      - data/intermediate/triplet_train.csv
+      - data/intermediate/triplet_valid.csv
+
+  build_verification:
+    cmd: python src/verification_builder.py
+    deps:
+      - src/verification_builder.py
+      - data/intermediate/celeba_id.csv
+      - data/intermediate/list_eval_partition.csv
+    outs:
+      - data/intermediate/verification_valid.csv
+      - data/intermediate/verification_test.csv
+
+  train:
+    cmd: python src/train.py
+    deps:
+      - src/train.py
+      - src/model.py
+      - src/datasets.py
+      - data/intermediate/triplet_train.csv
+      - data/intermediate/triplet_valid.csv
+    outs:
+      - verification_model.pt
+      - training_log.csv
+
+  evaluate:
+    cmd: python src/evaluate.py
+    deps:
+      - src/evaluate.py
+      - verification_model.pt
+      - data/intermediate/verification_valid.csv
+    outs:
+      - data/intermediate/threshold.json
+
+  test:
+    cmd: python src/test_model.py
+    deps:
+      - src/test_model.py
+      - verification_model.pt
+      - data/intermediate/threshold.json
+      - data/intermediate/verification_test.csv
+    outs: []
+
+  demo:
+    cmd: python src/demo.py
+    deps:
+      - src/demo.py
+      - verification_model.pt
+      - data/intermediate/threshold.json
+      - data/intermediate/verification_valid.csv
+      - data/intermediate/verification_test.csv
+    outs: []
