@@ -1,0 +1,23 @@
+
+stages:
+  train:
+    cmd: python3 main.py --mode train
+    deps:
+      - main.py
+      - train.py
+      - model.py
+      - game/
+    outs:
+      - best_model.pt
+      - training_log.csv
+    metrics:
+      - training_log.csv:
+          cache: false
+
+  eval:
+    cmd: python3 main.py --mode eval
+    deps:
+      - main.py
+      - eval.py
+      - model.py
+      - best_model.pt
