@@ -1,0 +1,26 @@
+Состав команды:
+Микишева Мария гр. Б03-213с
+Берёзкин Фёдор гр. Б03-212и
+
+Ссылка на модель:
+https://drive.google.com/drive/folders/1C6ROIiRWKEEjdUTCQtljNciS11RFVuD6?usp=sharing
+Ссылка на wandb:
+https://wandb.ai/mikisevam-/face-recognition-hw5/reports/Face-recognition-by-MM-FB--VmlldzoxMzEwOTAyMA?accessToken=ugyfjhjydvr64bd1nrc3sl6fdouekbtt1fv8ob3hstge3bsyqb99sb37cktjpop4
+
+Тестовые метрики и количество совпадений на выбранных примерах данных выводятся прямо в ноутбуке
+
+Распределение ролей:
+ 1. Section 1: Data Collection & Preparation — Микишева М.
+ 2. Section 2: Triplet Dataset Construction — Берёзкин Ф.
+ 3. Section 3: Verification Dataset Construction — Берёзкин Ф.
+    Построение словаря {ID -> пути} для valid/test, генерация 5 000 «позитивных» и 5 000 «негативных» пар для валидации (verification_valid.csv) и аналогичных 10 000 пар для теста (verification_test.csv).
+ 4. Section 4: Dataset Classes & DataLoader Setup — Микишева М.
+    Реализация FaceDatasetTriplet и FaceDatasetVerification с нормализацией и ToTensor, создание DataLoader’ов для выборок из CSV.
+ 5. Section 5: Model Training (Triplet Loss) — Берёзкин Ф.
+ 6. Section 6: Validation & Threshold Selection — Микишева М.
+ 7. Section 7: Testing the Model — Берёзкин Ф.
+    Вывод итоговых Precision/Recall/F1 на тестовом наборе.
+ 8. Section 8: Demonstration on Sample Images (1 reference + 15 test) — Микишева М.
+     Все константы, пути и гиперпараметры в config.py; общие функции (get_celeba_paths, imread, build_id_to_paths) в utils.py; функции построения графиков (loss, LR, ROC, F1 и т.д.) в visualize.py.
+ 9. Автоматизация (DVC-pipeline, Makefile) — Микишева М.
+ 10. Тесты - Берёзкин Ф.
